@@ -1,4 +1,4 @@
-module c3examples;
+module i18nc3;
 import std::io;
 import std::io::file;
 import std::os;
@@ -51,13 +51,12 @@ fn void? Translator.set_language(&self, String code) {
 	if (!self.tmap.has_key(code)) {
 		return LANGUAGE_MAP_NOT_FOUND?;
 	}
-
+	
 	self.currentLanguage = code;
 }
 
 fn Object*? Translator.translate(&self, String key) {	
-	if (try value = self.tmap.get(self.currentLanguage)) {
-		LanguageMap lmap = self.tmap.get(self.currentLanguage)!;
+	if (try LanguageMap lmap = self.tmap.get(self.currentLanguage)) {
 		return lmap.get(key)!!;
 	}
 
@@ -76,6 +75,8 @@ fn int main(String[] args)
 	if (catch excuse = translator.load_from_json("./examples/locales/fa.json", "fa")) {
 		io::printfn("Error loading JSON: %s\n", excuse);
 	}
+
+	translator.set_language("fa")!!;
 
 	io::printfn("Current Language: %s", translator.currentLanguage);
 
