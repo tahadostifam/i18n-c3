@@ -22,6 +22,9 @@ faultdef LANGUAGE_MAP_ALREADY_EXIST, LANGUAGE_MAP_NOT_FOUND;
 // TODO 
 // Implement variable interpolation support.
 
+// TODO 
+// Implement load from yaml.
+
 struct Translator (Printable) {
 	Allocator allocator;
 	TranslationMap tmap;
@@ -55,9 +58,14 @@ fn void? Translator.set_language(&self, String code) {
 	self.currentLanguage = code;
 }
 
-fn Object*? Translator.translate(&self, String key) {	
+fn Object*? Translator.translate(&self, String key, void*... args) {	
 	if (try LanguageMap lmap = self.tmap.get(self.currentLanguage)) {
-		return lmap.get(key)!!;
+		lmap.get(key)!;
+		// String value_str = value.get_string();
+
+		// String s = string::format(self.allocator, value, ...args);
+
+		return null;
 	}
 
 	return LANGUAGE_MAP_NOT_FOUND?;
@@ -65,6 +73,8 @@ fn Object*? Translator.translate(&self, String key) {
 
 fn int main(String[] args)
 {
+	String name = "C3";
+
 	Allocator allocator = allocator::heap();
 	Translator translator = new_translator(allocator);
 
@@ -76,14 +86,14 @@ fn int main(String[] args)
 		io::printfn("Error loading JSON: %s\n", excuse);
 	}
 
-	translator.set_language("fa")!!;
+	translator.set_language("en")!!;
 
 	io::printfn("Current Language: %s", translator.currentLanguage);
 
-	Object* greeting = translator.translate("greeting")!!;
+	Object* greeting = translator.translate("greeting", (void *) name)!!;
 	io::printfn("- Greeting: %s", greeting);
 
-	Object* farewell = translator.translate("farewell")!!;
+	Object* farewell = translator.translate("farewell", (void *) name)!!;
 	io::printfn("- farewell: %s", farewell);
 
 	return 0;
