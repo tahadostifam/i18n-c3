@@ -6,11 +6,12 @@ import std::core::mem::allocator;
 import std::collections::map;
 import std::collections::object;
 import std::encoding::json;
+import std::time;
 
 alias LanguageMap = HashMap{String, Object*};
 alias TranslationMap = HashMap{String, LanguageMap};
 
-faultdef LANGUAGE_MAP_ALREADY_EXIST, LANGUAGE_MAP_NOT_FOUND;
+faultdef LANGUAGE_MAP_ALREADY_EXIST, LANGUAGE_MAP_NOT_FOUND, UNIMPLEMENTED_FEATURE;
 
 // TODO 
 // Implement Translator.load to load all .json files from directory as LanguageMap.
@@ -18,9 +19,6 @@ faultdef LANGUAGE_MAP_ALREADY_EXIST, LANGUAGE_MAP_NOT_FOUND;
 
 // TODO 
 // Implement pluralization support.
-
-// TODO 
-// Implement variable interpolation support.
 
 // TODO 
 // Implement load from yaml.
@@ -58,14 +56,15 @@ fn void? Translator.set_language(&self, String code) {
 	self.currentLanguage = code;
 }
 
-fn Object*? Translator.translate(&self, String key, void*... args) {	
+macro Translator.tr(&self, key, ...) {
 	if (try LanguageMap lmap = self.tmap.get(self.currentLanguage)) {
-		lmap.get(key)!;
-		// String value_str = value.get_string();
+		Object* value = lmap.get(key)!;
 
-		// String s = string::format(self.allocator, value, ...args);
-
-		return null;
+		if (!value.is_string()) {
+			return UNIMPLEMENTED_FEATURE?;
+		}
+																
+		return string::format(self.allocator, value.s, $vasplat[..]);
 	}
 
 	return LANGUAGE_MAP_NOT_FOUND?;
@@ -73,8 +72,6 @@ fn Object*? Translator.translate(&self, String key, void*... args) {
 
 fn int main(String[] args)
 {
-	String name = "C3";
-
 	Allocator allocator = allocator::heap();
 	Translator translator = new_translator(allocator);
 
@@ -90,10 +87,10 @@ fn int main(String[] args)
 
 	io::printfn("Current Language: %s", translator.currentLanguage);
 
-	Object* greeting = translator.translate("greeting", (void *) name)!!;
+	String greeting = translator.tr("greeting", "C3")!!;
 	io::printfn("- Greeting: %s", greeting);
 
-	Object* farewell = translator.translate("farewell", (void *) name)!!;
+	String farewell = translator.tr("farewell", "C3")!!;
 	io::printfn("- farewell: %s", farewell);
 
 	return 0;
